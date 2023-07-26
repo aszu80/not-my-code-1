@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="pl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task 1</title>
+    <meta name="author" content="Michał Poleszak">
+
+    <style>
+        .buttonsSection {
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .buttons {
+            display: flex;
+            flex-direction: column;
+            margin-right: 2rem;
+        }
+
+        .buttons button {
+            margin-bottom: 1rem;
+        }
+
+        .tableSection {
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        table {
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            padding: 0.5rem;
+            text-align: center;
+            border-bottom: 0.1rem solid #161414;
+        }
+
+        th {
+            background-color: #a07e7e;
+        }
+    </style>
+
+    <section class="buttonsSection">
+        <div class="buttons">
+            <button id="sortByNameAscButton">sortowanie po "NAME" rosnąco</button>
+            <button id="sortByNameDescButton">sortowanie po " NAME" malejąco</button>
+            <button id="sortByCreatedAtAscButton">sortowanie po "created_At" rosnąco</button>
+            <button id="sortByCreatedAtDescButton">sortowanie po "created_At" malejąco</button>
+        </div>
+        <div class="tableSection">
+            <div id="table"></div>
+        </div>
+    </section>
+
+    <script>
+        const USER_COMPARATORS = {
+            name: nameComparator,
+            createdAt: createdAtComparator
+        }
+
+        let userList = [
+            { id: 1, name: 'bartek', createdAt: `2015-03-20` },
+            { id: 2, name: 'Adam', createdAt: `2018-03-20` },
+            { id: 3, name: 'Beata', createdAt: `2019-03-21` },
+            { id: '', name: '', createdAt: `2019-04-20` },
+            { id: 5, name: 'anna', createdAt: `2020-03-20` },
+            { id: 100, name: 'New Person', createdAt: `2019-03-20` },
+        ];
+        let clonedUserList = structuredClone(userList);
+
+        /* Notice:
+         *
+         * Consider using
+
+         https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/localeCompare
+
+         * it might be good enough for us to use:
+
+         https://caniuse.com/localecompare
+
+         * especially given the fact that it's supported on approx 98% of browsers while structuredClone is
+         * supported only on about 90% of browsers out there.
+         */
+
+        function nameComparator(a, b) {
+            return a.name.toLowerCase() > b.name.toLowerCase() ? 1 : -1
+        }
+
+        function createdAtComparator(a, b) {
+            return new Date(a.createdAt) - new Date(b.createdAt)
+        }
+
+        function reverseComparator(comparator) {
+            return (a, b) => -comparator(a, b)
+        }
+
+        function generateTable(tableData) {
+            let table = document.createElement('table');
+            const tableHeader = table.createTHead();
+            const headerRow = tableHeader.insertRow();
+            Object.keys(tableData[0]).forEach((key) => {
+                const cell = document.createElement('th');
+                cell.innerHTML = '<b>' + key.toUpperCase() + '</b>';
+                headerRow.append(cell);
+            });
+
+            const tableBody = table.createTBody();
+            tableData.forEach((element) => {
+                const tableRow = tableBody.insertRow();
+                Object.values(element).forEach((objectValue) => {
+                    const cell = tableRow.insertCell();
+                    cell.innerText = objectValue || 'Missing Data';
+                });
+            });
+            return table;
+        }
+
+        function renderTable(listToBeRendered) {
+            let tableContainer = document.getElementById(`table`);
+            tableContainer.innerText = ``;
+            tableContainer.append(generateTable(listToBeRendered));
+            return tableContainer;
+        }
+
+        function getComparatorToUse(field, direction) {
+            const comparator = USER_COMPARATORS[field];
+            if (direction === 'DESC') {
+                return reverseComparator(comparator);
+            }
+            return comparator;
+        }
+
+        function changeListOrder(listToSort, field, direction) {
+            const clonedList = structuredClone(listToSort);
+
+            const comparator = getComparatorToUse(field, direction);
+            clonedList.sort(comparator);
+
+            return clonedList;
+        }
+
+        document.getElementById(`sortByNameAscButton`).addEventListener(`click`, mouseEvent => {
+            const list = changeListOrder(userList, 'name', 'ASC');
+            renderTable(list);
+        });
+        document.getElementById('sortByNameDescButton').addEventListener('click', mouseEvent => {
+            const list = changeListOrder(userList, 'name', 'DESC');
+            renderTable(list);
+        });
+        document.getElementById('sortByCreatedAtAscButton').addEventListener('click', mouseEvent => {
+            const list = changeListOrder(userList, 'createdAt', 'ASC');
+            renderTable(list);
+        });
+        document.getElementById('sortByCreatedAtDescButton').addEventListener('click', mouseEvent => {
+            const list = changeListOrder(userList, 'createdAt', 'DESC');
+            renderTable(list);
+        });
+
+
+        renderTable(userList);
+
+        window.addEventListener(`DOMContentLoaded`, (event) => {
+            console.log(`DOM fully loaded and parsed`);
+        });
+
+
+    </script>
+
+
+    </body>
+
+</html>
